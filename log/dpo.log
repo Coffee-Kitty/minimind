@@ -1,0 +1,6 @@
+LLM总参数量：26.878 百万
+Tokenizing train dataset:   0%|          | 0/6 [00:00<?, ? examples/s]Tokenizing train dataset: 100%|██████████| 6/6 [00:00<00:00, 127.78 examples/s]
+Detected kernel version 5.4.0, which is below the recommended minimum of 5.5.0; this can cause the process to hang. It is recommended to upgrade the kernel to the minimum version or higher.
+  0%|          | 0/18 [00:00<?, ?it/s]Could not estimate the number of tokens of the input, floating-point operations will not be computed
+  6%|▌         | 1/18 [00:00<00:10,  1.60it/s] 17%|█▋        | 3/18 [00:00<00:03,  4.35it/s] 28%|██▊       | 5/18 [00:00<00:01,  6.68it/s] 39%|███▉      | 7/18 [00:01<00:01,  8.10it/s] 50%|█████     | 9/18 [00:01<00:00,  9.03it/s] 61%|██████    | 11/18 [00:01<00:00,  9.92it/s] 72%|███████▏  | 13/18 [00:01<00:00, 10.36it/s] 83%|████████▎ | 15/18 [00:01<00:00, 10.69it/s] 94%|█████████▍| 17/18 [00:02<00:00, 10.88it/s]                                               100%|██████████| 18/18 [00:02<00:00, 10.88it/s]100%|██████████| 18/18 [00:02<00:00,  7.33it/s]
+{'train_runtime': 2.4582, 'train_samples_per_second': 7.323, 'train_steps_per_second': 7.323, 'train_loss': 0.5031048456827799, 'epoch': 3.0}

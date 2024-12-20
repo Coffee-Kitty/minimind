@@ -12,7 +12,7 @@ from contextlib import nullcontext
 from torch import optim
 from transformers import AutoTokenizer
 from transformers import AutoModelForCausalLM
-from peft import get_peft_model, LoraConfig, TaskType
+from peft import get_peft_model, LoraConfig, TaskType,PeftModel
 from torch.utils.data import DataLoader
 from model.LMConfig import LMConfig
 from model.dataset import SFTDataset
@@ -101,12 +101,41 @@ def find_linear_with_keys(model, keys=["wq", "wk"]):
     return linear_names
 
 
-def init_model():
-    model_name_or_path = "./minimind-v1-small"
-    tokenizer_name_or_path = "./minimind-v1-small"
-    tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, trust_remote_code=True, use_fast=False)
-    model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True).to(args.device)
+# def init_model():
+#     model_name_or_path = "./minimind-v1-small"
+#     tokenizer_name_or_path = "./minimind-v1-small"
+#     tokenizer = AutoTokenizer.from_pretrained(tokenizer_name_or_path, trust_remote_code=True, use_fast=False)
+#     model = AutoModelForCausalLM.from_pretrained(model_name_or_path, trust_remote_code=True).to(args.device)
 
+#     target_modules = find_linear_with_keys(model)
+#     peft_config = LoraConfig(
+#         r=8,
+#         target_modules=target_modules
+#     )
+#     model = get_peft_model(model, peft_config)
+#     model.print_trainable_parameters()
+#     model = model.to(args.device)
+#     return model, tokenizer
+
+def init_model():
+    tokenizer = AutoTokenizer.from_pretrained('./model/minimind_tokenizer')
+    
+
+    def count_parameters(model):
+        return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+    model = Transformer(lm_config)
+    moe_path = '_moe' if lm_config.use_moe else ''
+    ckp = f'./out/pretrain_{lm_config.dim}{moe_path}.pth'
+    state_dict = torch.load(ckp, map_location=args.device)
+    unwanted_prefix = '_orig_mod.'
+    for k, v in list(state_dict.items()):
+        if k.startswith(unwanted_prefix):
+            state_dict[k[len(unwanted_prefix):]] = state_dict.pop(k)
+    model.load_state_dict(state_dict, strict=False)
+
+
+    # 转移到peft上去
     target_modules = find_linear_with_keys(model)
     peft_config = LoraConfig(
         r=8,
@@ -121,7 +150,7 @@ def init_model():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="MiniMind LoRA Fine-tuning")
     parser.add_argument("--out_dir", type=str, default="out", help="Output directory")
-    parser.add_argument("--epochs", type=int, default=20, help="Number of epochs")
+    parser.add_argument("--epochs", type=int, default=10, help="Number of epochs")
     parser.add_argument("--batch_size", type=int, default=32, help="Batch size")
     parser.add_argument("--learning_rate", type=float, default=1e-4, help="Learning rate")
     parser.add_argument("--device", type=str, default="cuda:0" if torch.cuda.is_available() else "cpu",
@@ -186,3 +215,4 @@ if __name__ == "__main__":
     iter_per_epoch = len(train_loader)
     for epoch in range(args.epochs):
         train_epoch(epoch, wandb)
+
